@@ -2,13 +2,15 @@ const express = require('express');
 const Order = require('../models/order');
 const Cart = require('../models/cart');
 const router = express.Router();
+const User = require('../models/user');
 const verifyToken = require('../middlewares/authMiddleware');
 const authorizeRoles = require('../middlewares/roleMiddleware');
 const authorizeOrderOwner = require('../middlewares/orderOwnerMiddleware');
 
 // Create an order
 router.post('/create', verifyToken, authorizeRoles("user"), async (req, res) => {
-  const { userId } = req.body;
+  // const { userId } = req.body;
+  const userId = req.user.id;
 
   try {
     const cart = await Cart.findOne({ userId }).populate('items.productId');
@@ -33,6 +35,8 @@ router.post('/create', verifyToken, authorizeRoles("user"), async (req, res) => 
         price: item.productId.price,
       })),
       totalAmount,
+      managerEarnings: 0,
+      adminEarnings: 0
     });
 
     await order.save();
@@ -57,7 +61,23 @@ router.post('/payment-success', verifyToken, authorizeOrderOwner, async (req, re
     if (!order) {
       return res.status(404).json({ error: 'Order not found' });
     }
+    const user = await User.findById(order.userId);
 
+    // updating manager earnings
+    const manager = await User.findById(user.managerId);
+    managerEarning = order.totalAmount * 0.05;
+    manager.earnings += managerEarning;
+    order.managerEarnings = managerEarning;
+    await manager.save();
+
+    // updating admin earnings
+    const admin = await User.findById(user.adminId);
+    adminEarning = order.totalAmount * 0.025;
+    admin.earnings += adminEarning;
+    order.adminEarnings = adminEarning;
+    await admin.save();
+
+    // updating order status
     order.paymentStatus = 'Success';
     order.paymentId = paymentId;
     order.orderStatus = 'Completed';

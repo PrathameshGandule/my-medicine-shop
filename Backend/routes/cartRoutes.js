@@ -2,15 +2,15 @@ const express = require('express');
 const Cart = require('../models/cart');
 const router = express.Router();
 const verifyToken = require('../middlewares/authMiddleware');
-const authorizeUserCart = require('../middlewares/userCartMiddleware');
+const authorizeRoles = require('../middlewares/roleMiddleware');
 
 // Add an item to the cart
-// added /:userId to the route to specify the user whose cart we are adding to
-router.post('/add', verifyToken, authorizeUserCart, async (req, res) => {
+router.post('/add', verifyToken, authorizeRoles("user"), async (req, res) => {
   let { productId, quantity } = req.body;
   quantity = parseInt(quantity);  
   let userId = req.user.id;
-
+  // console.log(userId);
+  // console.log(req.user.id)
   try {
     let cart = await Cart.findOne({ userId });
     if (!cart) {
@@ -37,9 +37,10 @@ router.post('/add', verifyToken, authorizeUserCart, async (req, res) => {
 // Get the user's cart
 // only admins and user can access this route
 // user can only access their own cart
-router.get('/:userId', verifyToken, authorizeUserCart, async (req, res) => {
+router.get('/', verifyToken, authorizeRoles("user"), async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId }).populate('items.productId');
+    const userId = req.user.id;
+    const cart = await Cart.findOne({ userId }).populate('items.productId');
     if (!cart) {
       // Return an empty cart if none exists
       return res.status(200).json({ items: [] });
@@ -53,9 +54,8 @@ router.get('/:userId', verifyToken, authorizeUserCart, async (req, res) => {
 
 
 // Remove an item from the cart
-// added /:userId to the route to specify the user whose cart we are deleting from
 
-router.delete('/remove', verifyToken, authorizeUserCart, async (req, res) => {
+router.delete('/remove', verifyToken, authorizeRoles("user"), async (req, res) => {
   const { productId } = req.body; // Ensure the request body contains both userId and productId
   let userId = req.user.id;
 
@@ -76,9 +76,8 @@ router.delete('/remove', verifyToken, authorizeUserCart, async (req, res) => {
 });
 
 // Update quantity of an existing product
-// added /:userId to the route to specify the user whose cart we are updating to
 
-router.put('/update', verifyToken, authorizeUserCart, async (req, res) => {
+router.put('/update', verifyToken, authorizeRoles("user"), async (req, res) => {
   let { productId, quantity } = req.body;
   let userId = req.user.id;
   quantity = parseInt(quantity);

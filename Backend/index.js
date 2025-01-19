@@ -21,6 +21,7 @@ const cartRoutes = require('./routes/cartRoutes')
 const adminRoutes = require('./routes/adminRoutes')
 const prescriptionRoutes = require('./routes/prescriptionRoutes');
 const authRoutes = require('./routes/authRoutes');
+const earningsRoutes = require('./routes/earningsRoutes');
 // const partnerRoutes = require('./routes/partnerRoutes');
 
 
@@ -32,6 +33,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/earnings', earningsRoutes);
 // app.use("/api/partner", partnerRoutes);
 
 app.get('/',(req, res)=>{

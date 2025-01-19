@@ -5,15 +5,23 @@ const User = require("../models/user");
 // to register the user
 const register = async(req, res) => {
     try{
-        const { phoneNumber , password , role } = req.body
+        const { phoneNumber , password , role , managerId , adminId } = req.body
 
         if(!phoneNumber || !password || !role){
             return res.status(400).json({ message: "Please fill all fields !" });
         }
 
+        if(role === "user" && (!managerId || !adminId)){
+            return res.status(400).json({ message: "Please provide managerId and adminId !" });
+        }
+
+        if(role === "manager" && !adminId){
+            return res.status(400).json({ message: "Please provide adminId !" });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = new User({ phoneNumber , password: hashedPassword , role });
+        const newUser = new User({ phoneNumber , password: hashedPassword , role , managerId , adminId });
         await newUser.save();
         res.status(201).json({
             message: `User registered with phone number ${phoneNumber}`

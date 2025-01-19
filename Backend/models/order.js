@@ -10,6 +10,8 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   totalAmount: { type: Number, required: true },
+  managerEarnings: { type: Number, required: true },
+  adminEarnings: { type: Number, required: true },
   paymentStatus: { type: String, default: 'Pending' },
   paymentId: { type: String },
   orderStatus: { type: String, default: 'Pending' },
